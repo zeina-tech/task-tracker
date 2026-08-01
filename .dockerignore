@@ -1,0 +1,56 @@
+# Git
+.git/
+.gitignore
+
+# Environment variables / secrets
+.env
+.env.*
+*.pem
+*.key
+credentials*
+secrets*
+token*
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Docs / misc
+docs/
+README.md
+CLAUDE.md
+.claude/
+
+# Runtime data (created inside the container, not shipped in the image)
+data/
