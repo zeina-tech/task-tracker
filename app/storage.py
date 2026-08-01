@@ -38,6 +38,19 @@ _tasks: dict[str, TaskResponse] = _load_tasks()
 
 
 def add_task(payload: TaskCreate) -> TaskResponse:
+    """Create and persist a new task, rejecting duplicates.
+
+    Args:
+        payload (TaskCreate): The task data to create.
+
+    Returns:
+        TaskResponse: The newly created task, with generated id, computed
+        ``is_overdue`` flag, and created/updated timestamps.
+
+    Raises:
+        DuplicateTaskError: If a task with the same title, description,
+            status, priority, and assignee already exists.
+    """
     duplicate_key = (
         payload.title.strip(),
         payload.description or "",
@@ -81,6 +94,19 @@ def get_all_tasks(
     overdue: Optional[bool] = None,
     search: Optional[str] = None,
 ) -> list[TaskResponse]:
+    """Retrieve all tasks, optionally filtered by status, priority, overdue state, or search text.
+
+    Args:
+        status (Optional[TaskStatus]): If provided, only include tasks with this status.
+        priority (Optional[TaskPriority]): If provided, only include tasks with this priority.
+        overdue (Optional[bool]): If provided, only include tasks whose ``is_overdue``
+            flag matches this value.
+        search (Optional[str]): If provided, only include tasks whose title or
+            description contains this text (case-insensitive).
+
+    Returns:
+        list[TaskResponse]: The tasks matching all provided filters.
+    """
     results = list(_tasks.values())
     if status is not None:
         results = [task for task in results if task.status == status]
@@ -98,10 +124,30 @@ def get_all_tasks(
 
 
 def get_task_by_id(task_id: str) -> Optional[TaskResponse]:
+    """Retrieve a single task by its id.
+
+    Args:
+        task_id (str): The unique id of the task to retrieve.
+
+    Returns:
+        Optional[TaskResponse]: The matching task, or None if no task with
+        the given id exists.
+    """
     return _tasks.get(task_id)
 
 
 def update_task(task_id: str, payload: TaskUpdate) -> Optional[TaskResponse]:
+    """Apply a partial update to an existing task and persist the change.
+
+    Args:
+        task_id (str): The unique id of the task to update.
+        payload (TaskUpdate): The fields to update; unset fields are left
+            unchanged.
+
+    Returns:
+        Optional[TaskResponse]: The updated task, or None if no task with
+        the given id exists.
+    """
     existing = _tasks.get(task_id)
     if existing is None:
         return None
@@ -121,6 +167,14 @@ def update_task(task_id: str, payload: TaskUpdate) -> Optional[TaskResponse]:
 
 
 def delete_task(task_id: str) -> bool:
+    """Delete a task by its id and persist the change.
+
+    Args:
+        task_id (str): The unique id of the task to delete.
+
+    Returns:
+        bool: True if a task was found and deleted, False otherwise.
+    """
     if task_id in _tasks:
         del _tasks[task_id]
         _save_tasks(_tasks)
