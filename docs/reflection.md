@@ -1,3 +1,6 @@
+# Reflection
+
+(placeholder for reflection content moved from midcourse/reflection.md)
 # Reflection — Mid-Course Project
 
 For this project I used a mix of AI tools rather than sticking to one. I
