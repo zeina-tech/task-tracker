@@ -1,20 +1,25 @@
 # Final AI Review and Ownership Evidence
 
+
 ## AGENTS.md guardrails
-- Repo-specific stack and commands included: yes/no — TODO: confirm AGENTS.md lists exact run/test commands
-- Docs-first/read-first guardrail included: yes/no — TODO
-- Unexpected app/frontend edits rule included: yes/no — TODO
+- Repo-specific stack and commands included: Yes — stack (Python 3.11, FastAPI, Pydantic v2, pytest) and exact run/test commands (`uvicorn app.main:app --reload`, `pytest -v`) are listed.
+- Docs-first/read-first guardrail included: Yes — "Prefer read-only analysis first," restricts edits to `docs/` without explicit approval, and requires stating which files were read before a repo-grounded answer.
+- Unexpected app/frontend edits rule included: Yes — explicitly states "Do not edit `app/` while doing security review, governance, feature planning, architecture docs, or playbook work."
 
 ## AI code review mini-log
 
-TODO — choose one real diff or changed file, record at least 3 AI review comments,
-grade each Useful / Noise / Wrong with a reason.
+## AI code review mini-log
+
+Reviewed commit `316c1ff` ("Add Google-style docstrings to public functions and route
+handlers") in `app/business_rules.py`, `app/main.py`, `app/models.py`, and
+`app/storage.py`.
 
 | AI comment | Grade: Useful / Noise / Wrong | Reason | Verification or decision |
 |---|---|---|---|
-| | | | |
-| | | | |
-| | | | |
+| Docstring examples use untested `>>>` doctest syntax; CI never runs them (`pytest -v --tb=short`, no `--doctest-modules`). | Useful | Project is finished and unlikely to change, so risk of examples becoming inaccurate over time is low but still a noted limitation. | Accepted as-is. |
+| `create_task`'s docstring claims `HTTPException 409` on duplicate, but the diff's context window cuts off before the `raise` line, so the claim couldn't be confirmed from the diff alone. | Noise | Checked the actual file — claim is accurate (`raise HTTPException(status_code=409, ...)` confirmed). AI's caution was reasonable given the incomplete diff, but not an actual defect once verified. | Confirmed correct; no change needed. |
+| Commit message claims docstrings were added "without changing any logic"; diff has no `-` lines removing existing code, only `+` lines adding docstring text. | Noise | The diff visually makes this obvious on inspection — stating it explicitly adds little for a reviewer already looking at the diff. | Confirmed accurate; no action needed. |
+| Docstrings consistently follow Google-style structure (Args/Returns/Raises) across all four touched files. | Noise | Consistency is the expected outcome of one AI session following one prompt across a single pass, not a meaningfully uncertain thing worth confirming. | Confirmed accurate; not a notable finding. |
 
 ## AI security mini-review
 
@@ -53,13 +58,16 @@ user with correct file ownership — something the AI security review did not fl
 way. This wasn't a gap; it confirmed an existing good practice the automated review
 missed entirely.
 
+
 ## One AI output I rejected or corrected
 
-TODO — draft option: the AI's own first-pass self-critique of the Module 5.4
-comments-feature plan labeled all six sections "Right" with zero findings. This was
-rejected as insufficiently critical — a second, independent pass found at least one real
-gap (no handling or test for concurrent comment writes, given the same lock-free storage
-pattern flagged in SEC-02). Confirm if you want to use this example or a different one.
+The AI review flagged that `create_task`'s docstring claim of raising `HTTPException 409`
+on duplicate creation could not be confirmed from the diff alone, since Git's context
+window cut off before the actual `raise` line. Rather than accept this as an open concern,
+I checked the full function in `app/main.py` directly and confirmed the `except` block
+does raise `HTTPException(status_code=409, detail="Task already exists")` exactly as the
+docstring states. I downgraded this from an open question to Noise once verified, rather
+than leaving it flagged or assuming the AI's caution meant something was actually wrong.
 
 ## Three AI usage rules
 
@@ -73,4 +81,15 @@ pattern flagged in SEC-02). Confirm if you want to use this example or a differe
 
 ## Ownership statement
 
-TODO — 3-5 sentences in your own words.
+## Ownership statement
+
+I'm comfortable submitting this repo because every AI-generated finding, plan, and code
+change in it was checked against the real files before I accepted it, not taken on trust.
+Coming from a MATLAB and Python-for-ML background rather than web development, I closed
+real gaps in my knowledge by looking up unfamiliar concepts rather than accepting code I
+couldn't explain, and when I hit a real bug myself — the same task appearing twice on the
+Kanban board — I identified the cause and had a duplicate check added. I also caught a
+case where the AI's own self-critique of a feature plan found zero issues across six
+sections and treated that as a signal to look harder rather than accept it at face value,
+which a second pass confirmed was warranted. I can walk through and defend every command,
+finding, and decision recorded in this repo's docs/.
